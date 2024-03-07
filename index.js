@@ -1,12 +1,15 @@
 import express from "express";
 import fetch from "node-fetch";
+import cors from "cors";
 const app = express();
 const PORT = 3000;
 
-function getLatestStories() {
+app.use(cors());
+
+const getLatestStories = async () => {
   const url = "https://time.com";
 
-  fetch(url)
+  const latestPosts = await fetch(url)
     .then((response) => {
       if (response.ok) {
         return response.text();
@@ -26,9 +29,7 @@ function getLatestStories() {
       }
 
       //   console.log(allStoriesIndex);
-
-      const links = [];
-      const titles = [];
+      const latestPosts = [];
 
       for (let i = 0; i <= 5; ++i) {
         /// ADDING LINKS ///
@@ -53,19 +54,27 @@ function getLatestStories() {
           .slice(startIndexTitle, endIndexTitle)
           .split(titleString)[1];
 
-        links.push(url + link);
-        titles.push(title);
+        latestPosts.push({
+          title: title,
+          link: url + link,
+        });
       }
-      //   console.log(titles, links);
+      return latestPosts;
     })
     .catch((error) => {
       console.error(error.message);
     });
-}
+
+  return latestPosts;
+};
 
 app.get("/", (req, res) => {
-  getLatestStories();
-  res.send("HI there");
+  res.send("Hi there you are on the home route");
+});
+
+app.get("/getTimeStories", async (req, res) => {
+  const latestStories = await getLatestStories();
+  res.json(latestStories);
 });
 
 app.listen(PORT, () => {
